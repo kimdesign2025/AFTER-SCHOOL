@@ -1,0 +1,14 @@
+{% autoescape off %}
+Bonjour {{ user.full_name }},
+
+Merci de vous être inscrit sur After School !
+
+Veuillez cliquer sur le lien ci-dessous pour activer votre compte :
+
+http://{{ domain }}{% url 'users:activate' uidb64=uid token=token %}
+
+Ce lien est valide pendant 24 heures. Si vous ne l'activez pas dans ce délai, vous devrez vous réinscrire.
+
+Cordialement,
+L'équipe After School
+{% endautoescape %}

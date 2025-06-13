@@ -1,0 +1,48 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #007bff, #00d4ff);
+    color: white;
+}
+
+.navbar {
+    box-shadow: 0 2px 5px blue(39, 6, 138, 0.1);
+}
+
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.notify-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+footer {
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+.logo-img {
+    height: 60px;           /* Taille réduite */
+    width: auto;            /* Garde les proportions */
+    display: block;         /* Pour le centrage */
+    margin: 10px auto;      /* Centre horizontalement */
+    object-fit: contain;    /* Ajustement de l’image */
+    transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+    transform: scale(1.05); /* Effet léger au survol */
+}

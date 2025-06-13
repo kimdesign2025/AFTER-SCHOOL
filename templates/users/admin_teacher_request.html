@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des demandes d'enseignant - After School</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Gestion des demandes d'enseignant</h2>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% if requests %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Utilisateur</th>
+                        <th>Qualifications</th>
+                        <th>Statut</th>
+                        <th>Date de soumission</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in requests %}
+                        <tr>
+                            <td>{{ request.user.email }}</td>
+                            <td>{{ request.qualifications }}</td>
+                            <td>{{ request.get_status_display }}</td>
+                            <td>{{ request.created_at }}</td>
+                            <td>
+                                {% if request.status == 'pending' %}
+                                    <a href="{% url 'users:approve_teacher_request' request_id=request.id %}" class="btn btn-success btn-sm">Approuver</a>
+                                    <a href="{% url 'users:reject_teacher_request' request_id=request.id %}" class="btn btn-danger btn-sm">Rejeter</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Aucune demande en attente.</p>
+        {% endif %}
+        <a href="{% url 'admin:index' %}" class="btn btn-secondary">Retour au panneau admin</a>
+    </div>
+</body>
+</html>
