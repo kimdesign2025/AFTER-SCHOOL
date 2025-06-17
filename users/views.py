@@ -69,18 +69,56 @@ def login_view(request):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                return redirect('users:profile')
+                if user.is_superuser:
+                    return redirect('users:admin_dashboard')
+                elif user.role == 'teacher':
+                    return redirect('users:teacher_dashboard')
+                else:  # learner
+                    return redirect('users:admin_student')
             else:
                 messages.error(request, _("Votre compte n'est pas activé. Vérifiez votre email."))
         else:
             messages.error(request, _("Email ou mot de passe incorrect."))
     return render(request, 'users/login.html')
 
-def logout_view(request):
-    """Vue pour la déconnexion des utilisateurs."""
-    logout(request)
-    messages.success(request, _("Vous avez été déconnecté avec succès."))
-    return redirect('users:login')
+@login_required
+def admin_student(request):
+    """Vue pour le profil utilisateur."""
+    return render(request, 'users/admin_student.html', {'user': request.user})
+
+@login_required
+def admin_dashboard(request):
+    """Vue pour le tableau de bord admin."""
+    if not request.user.is_superuser:
+        return redirect('profile')
+    total_users = User.objects.count()
+    total_teachers = User.objects.filter(role='teacher').count()
+    pending_requests = TeacherRequest.objects.filter(status='pending').count()
+    teacher_requests = TeacherRequest.objects.all()[:5]
+    context = {
+        'total_users': total_users,
+        'total_teachers': total_teachers,
+        'pending_requests': pending_requests,
+        'teacher_requests': teacher_requests,
+    }
+    return render(request, 'users/profile.html', context)
+
+@login_required
+def teacher_dashboard(request):
+    """Vue pour le tableau de bord enseignant."""
+    if request.user.role != 'teacher':
+        return redirect('profile')
+    context = {
+        'user': request.user,
+        # Ajoutez des données spécifiques aux enseignants (par exemple, cours)
+    }
+    return render(request, 'users/admin_teacher.html', context)
+
+# def logout_view(request):
+#     """Vue pour la déconnexion des utilisateurs."""
+#     logout(request)
+#     messages.success(request, _("Vous avez été déconnecté avec succès."))
+#     return redirect('users:login')
 
 @login_required
 def profile(request):
@@ -139,3 +177,15 @@ def reject_teacher_request(request, request_id):
     except TeacherRequest.DoesNotExist:
         messages.error(request, _("Demande introuvable."))
     return redirect('users:admin_teacher_requests')
+
+
+def logout_view(request):
+    """Vue pour la déconnection des utilisateurs."""
+    logout(request)
+    messages.success(request, _("Vous avez été déconnecté avec succès."))
+    return redirect('users:home')
+    
+
+def course(request):
+    """Vue pour rediriger vers la page cours.html."""
+    return render(request, 'users/court.html')

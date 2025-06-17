@@ -1,115 +1,469 @@
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>After School - Plateforme d'E-learning</title>
+    <title>After School - Plateforme Premium d'E-learning</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
-
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --dark-color: #1a252f;
+            --light-color: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        /* Navigation */
+        .navbar {
+            background-color: var(--dark-color) !important;
+            padding: 15px 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .navbar.scrolled {
+            padding: 10px 0;
+            background-color: rgba(26, 37, 47, 0.95) !important;
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo-container {
+            padding: 0 20px;
+        }
+        
+        .logo-img {
+            height: 40px;
+            width: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            position: relative;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-text::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+        
+        .navbar-brand:hover .logo-text {
+            color: var(--accent-color);
+        }
+        
+        .navbar-brand:hover .logo-text::after {
+            width: 100%;
+        }
+        
+        .navbar-brand:hover .logo-img {
+            transform: rotate(15deg);
+        }
+        
+        .nav-link {
+            color: rgba(255,255,255,0.8) !important;
+            font-weight: 500;
+            margin: 0 10px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: white !important;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .btn-outline-light:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* Hero Section */
+        .hero-section {
+            position: relative;
+            height: 90vh;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            overflow: hidden;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero-section h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .hero-section .lead {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        /* Features Section */
+        .features-section {
+            padding: 100px 0;
+            background-color: white;
+        }
+        
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 60px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 3px;
+            bottom: -10px;
+            left: 25%;
+            background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card {
+            padding: 40px 30px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            height: 100%;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.2);
+            color: var(--secondary-color);
+        }
+        
+        .feature-card h5 {
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        /* Courses Section */
+        .courses-section {
+            padding: 100px 0;
+            background-color: #f9fafc;
+        }
+        
+        .course-card {
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+            height: 100%;
+        }
+        
+        .course-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+        
+        .course-img {
+            height: 200px;
+            object-fit: cover;
+            transition: all 0.5s ease;
+        }
+        
+        .course-card:hover .course-img {
+            transform: scale(1.05);
+        }
+        
+        .course-body {
+            padding: 25px;
+        }
+        
+        .course-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            min-height: 50px;
+        }
+        
+        .course-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .notify-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .notify-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Testimonials */
+        .testimonials-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+        
+        .testimonial-card {
+            background-color: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 30px;
+            margin: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .testimonial-card:hover {
+            transform: translateY(-10px);
+            background-color: rgba(255,255,255,0.15);
+        }
+        
+        .testimonial-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            margin-bottom: 20px;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            padding: 100px 0;
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 80px 0 30px;
+        }
+        
+        .footer-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .footer-title::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            bottom: -8px;
+            left: 0;
+            background: linear-gradient(to right, var(--accent-color), transparent);
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            padding-left: 15px;
+        }
+        
+        .footer-links a::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+            padding-left: 20px;
+        }
+        
+        .footer-links a:hover::before {
+            opacity: 1;
+            left: -5px;
+        }
+        
+        .social-icons a {
+            color: white;
+            font-size: 1.2rem;
+            margin-right: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icons a:hover {
+            color: var(--accent-color);
+            transform: translateY(-3px);
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 30px;
+            margin-top: 50px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero-section h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-section .lead {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section {
+                height: auto;
+                padding: 120px 0;
+            }
+            
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
-<style>
-    .logo-container {
-        padding: 10px 20px;
-    }
-
-    .logo-img {
-        height: 50px;
-        width: 50px;
-        object-fit: cover;
-        border-radius: 50%; /* Logo en cercle */
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
-    }
-
-    .logo-img:hover {
-        transform: scale(1.05);
-    }
-
-    .logo-text {
-        color: white;
-        font-size: 22px;
-        font-weight: 600;
-        font-family: 'Playfair Display', serif;
-        text-decoration: none;
-        margin-left: 10px;
-        
-        
-        
-    }
-    .logo-text {
-    position: relative;
-    display: inline-block;
-    color: white;
-    font-size: 22px;
-    font-weight: 600;
-    font-family: 'Playfair Display', serif;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.logo-text::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 2px;
-    bottom: -4px;
-    left: 0;
-    background-color: blue;
-    transition: width 0.3s ease;
-}
-
-.logo-text:hover {
-    color: blue;
-    cursor: pointer;
-}
-
-.logo-text:hover::after {
-    width: 100%;
-}
-    .navbar-brand:hover {
-        text-decoration: none;
-        color: inherit;
-    }
-
-    /* Si ta navbar a un fond sombre, sinon adapte */
-    /* .navbar-brand {
-        text-decoration: none;
-        color: inherit;
-    } */
-</style>
-
 <body>
-
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
-        <div class="logo-container d-flex align-items-center">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="{% static 'media/images/logo.png' %}" class="logo-img me-2" alt="Logo">
-                <span class="logo-text">After School</span>
-            </a>
-        </div>
-        
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <div class="logo-container d-flex align-items-center">
+                <a class="navbar-brand d-flex align-items-center" href="#">
+                    <img src="{% static 'media/images/logo.png' %}" class="logo-img me-2" alt="Logo">
+                    <span class="logo-text">After School</span>
+                </a>
+            </div>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="">Accueil</a></li>
-                    <li class="nav-item"><a class="nav-link" href="">Cours</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Accueil</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Cours</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">À propos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
                     {% if user.is_authenticated %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Tableau de bord</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Déconnexion</a></li>
                     {% else %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'users:login' %}">Connexion</a></li>
-                        <li class="nav-item"><a class="nav-link btn btn-outline-light ms-2" href="{% url 'users:signup' %}">Inscription</a></li>
+                        <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+                            <a class="btn btn-outline-light px-4" href="{% url 'users:signup' %}">Inscription</a>
+                        </li>
                     {% endif %}
                 </ul>
             </div>
@@ -117,99 +471,294 @@
     </nav>
 
     <!-- Hero Section -->
-    <header class="hero-section text-center text-white py-5" style="background-image: url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3'); background-size: cover; background-position: center;">
-        <div class="overlay"></div>
-        <div class="container position-relative">
-            <h1 class="display-4 fw-bold">Apprenez avec After School</h1>
-            <p class="lead mb-4">Explorez des cours de qualité, conçus par des experts, à votre rythme.</p>
-            <a href="" class="btn btn-primary btn-lg">Commencer maintenant</a>
-        </div>
-    </header>
-
-    <!-- Why Choose Us Section -->
-    <section class="why-choose-us py-5 bg-light">
+    <section class="hero-section" data-aos="fade">
         <div class="container">
-            <h2 class="text-center mb-5 fw-bold">Pourquoi choisir After School ?</h2>
-            <div class="row text-center">
-                <div class="col-md-4 mb-4">
-                    <i class="bi bi-book fs-1 text-primary mb-3"></i>
-                    <h5>Cours de qualité</h5>
-                    <p>Accédez à des cours vidéo et supports conçus par des enseignants expérimentés.</p>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <i class="bi bi-bell fs-1 text-primary mb-3"></i>
-                    <h5>Notifications personnalisées</h5>
-                    <p>Restez informé des nouveaux cours grâce à notre système de notifications.</p>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <i class="bi bi-chat fs-1 text-primary mb-3"></i>
-                    <h5>Interaction directe</h5>
-                    <p>Contactez vos enseignants pour des cours approfondis ou des questions.</p>
+            <div class="hero-content text-center">
+                <h1 data-aos="fade-up" data-aos-delay="100">Transformez votre apprentissage avec After School</h1>
+                <p class="lead" data-aos="fade-up" data-aos-delay="200">Accédez à des cours premium conçus par des experts pour booster vos compétences.</p>
+                <div data-aos="fade-up" data-aos-delay="300">
+                    <a href="{% url 'users:login' %}" class="btn btn-primary btn-lg me-2">Commencer maintenant</a>
+                    <a href="#" class="btn btn-outline-light btn-lg">Découvrir les cours</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Courses Preview -->
-    <section class="courses-preview py-5">
+    <!-- Features Section -->
+    <section class="features-section">
         <div class="container">
-            <h2 class="text-center mb-5 fw-bold">Nos derniers cours</h2>
+            <h2 class="section-title text-center" data-aos="fade-up">Pourquoi choisir After School ?</h2>
+            
+            <div class="row">
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card text-center">
+                        <i class="bi bi-book feature-icon"></i>
+                        <h5>Cours de qualité premium</h5>
+                        <p>Accédez à des contenus pédagogiques élaborés par des experts reconnus dans leur domaine.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card text-center">
+                        <i class="bi bi-people feature-icon"></i>
+                        <h5>Communauté active</h5>
+                        <p>Échangez avec d'autres apprenants et des enseignants dans un environnement collaboratif.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card text-center">
+                        <i class="bi bi-graph-up feature-icon"></i>
+                        <h5>Suivi de progression</h5>
+                        <p>Visualisez vos progrès grâce à nos outils analytiques avancés et personnalisés.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card text-center">
+                        <i class="bi bi-award feature-icon"></i>
+                        <h5>Certifications reconnues</h5>
+                        <p>Obtenez des certifications valorisantes pour votre parcours professionnel.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card text-center">
+                        <i class="bi bi-headset feature-icon"></i>
+                        <h5>Support 24/7</h5>
+                        <p>Notre équipe est disponible pour répondre à toutes vos questions à tout moment.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card text-center">
+                        <i class="bi bi-device-phone feature-icon"></i>
+                        <h5>Multiplateforme</h5>
+                        <p>Apprenez où que vous soyez sur ordinateur, tablette ou smartphone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Courses Section -->
+    <section class="courses-section">
+        <div class="container">
+            <h2 class="section-title text-center" data-aos="fade-up">Nos cours populaires</h2>
+            
             <div class="row">
                 {% for course in courses %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card course-card h-100 shadow-sm">
+                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:"00" }}">
+                        <div class="course-card">
                             {% if course.thumbnail %}
-                                <img src="{{ course.thumbnail.url }}" class="card-img-top" alt="{{ course.title }}">
+                                <img src="{{ course.thumbnail.url }}" class="course-img w-100" alt="{{ course.title }}">
                             {% else %}
-                                <img src="https://images.unsplash.com/photo-1501504905252-473c47e087f8" class="card-img-top" alt="Default Course Image">
+                                <img src="https://images.unsplash.com/photo-1501504905252-473c47e087f8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80" class="course-img w-100" alt="Default Course Image">
                             {% endif %}
-                            <div class="card-body">
-                                <h5 class="card-title">{{ course.title }}</h5>
-                                <p class="card-text text-muted">{{ course.description|truncatewords:20 }}</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <a href="{% url 'course_detail' course.id %}" class="btn btn-primary">Voir le cours</a>
-                                    <button class="btn btn-outline-secondary notify-btn" data-course-id="{{ course.id }}">
-                                        <i class="bi bi-bell"></i>
+                            <div class="course-body">
+                                <h5 class="course-title">{{ course.title }}</h5>
+                                <p class="text-muted">{{ course.description|truncatewords:20 }}</p>
+                                <div class="course-meta">
+                                    <a href="{% url 'course_detail' course.id %}" class="btn btn-sm btn-primary">Voir le cours</a>
+                                    <button class="btn btn-sm notify-btn" data-course-id="{{ course.id }}">
+                                        <i class="bi bi-bell"></i> Notifier
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 {% empty %}
-                    <p class="text-center text-muted">Aucun cours disponible pour le moment.</p>
+                    <div class="col-12 text-center" data-aos="fade-up">
+                        <p class="text-muted">Aucun cours disponible pour le moment.</p>
+                    </div>
                 {% endfor %}
+            </div>
+            
+            <div class="text-center mt-5" data-aos="fade-up">
+                <a href="{% url 'users:course' %}" class="btn btn-outline-primary btn-lg">Voir tous les cours</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section">
+        <div class="container">
+            <h2 class="section-title text-center text-white" data-aos="fade-up">Ce que disent nos étudiants</h2>
+            
+            <div class="row">
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="testimonial-card text-center">
+                        <img src="https://randomuser.me/api/portraits/women/32.jpg" class="testimonial-img" alt="Student">
+                        <p>"After School a transformé ma manière d'apprendre. Les cours sont complets et les enseignants très accessibles."</p>
+                        <h5>Marie D.</h5>
+                        <div class="text-warning">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="testimonial-card text-center">
+                        <img src="https://randomuser.me/api/portraits/men/44.jpg" class="testimonial-img" alt="Student">
+                        <p>"Grâce à After School, j'ai pu acquérir de nouvelles compétences qui m'ont permis d'évoluer professionnellement."</p>
+                        <h5>Jean P.</h5>
+                        <div class="text-warning">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-half"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="testimonial-card text-center">
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg" class="testimonial-img" alt="Student">
+                        <p>"La qualité des cours est exceptionnelle. Je recommande After School à tous ceux qui veulent progresser."</p>
+                        <h5>Sophie L.</h5>
+                        <div class="text-warning">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-5 bg-white">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-3 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <h2 class="display-4 text-primary">10K+</h2>
+                    <p class="text-muted">Étudiants actifs</p>
+                </div>
+                <div class="col-md-3 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <h2 class="display-4 text-primary">500+</h2>
+                    <p class="text-muted">Cours disponibles</p>
+                </div>
+                <div class="col-md-3 mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <h2 class="display-4 text-primary">200+</h2>
+                    <p class="text-muted">Enseignants experts</p>
+                </div>
+                <div class="col-md-3 mb-4" data-aos="fade-up" data-aos-delay="400">
+                    <h2 class="display-4 text-primary">98%</h2>
+                    <p class="text-muted">Satisfaction</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container text-center">
+            <h2 class="display-5 mb-4" data-aos="fade-up">Prêt à transformer votre apprentissage ?</h2>
+            <p class="lead mb-5" data-aos="fade-up" data-aos-delay="100">Rejoignez notre communauté d'apprenants ambitieux dès aujourd'hui.</p>
+            <div data-aos="fade-up" data-aos-delay="200">
+                <a href="{% url 'users:signup' %}" class="btn btn-primary btn-lg px-5 py-3 me-3">S'inscrire maintenant</a>
+                <a href="#" class="btn btn-outline-light btn-lg px-5 py-3">Découvrir plus</a>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4">
+    <footer class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-md-4">
-                    <h5>After School</h5>
-                    <p>Plateforme d'e-learning pour apprendre à votre rythme avec des cours de qualité.</p>
+                <div class="col-lg-4 mb-5 mb-lg-0">
+                    <h3 class="footer-title">After School</h3>
+                    <p>Plateforme premium d'e-learning pour apprendre à votre rythme avec des cours de qualité supérieure.</p>
+                    <div class="social-icons mt-4">
+                        <a href="#"><i class="bi bi-facebook"></i></a>
+                        <a href="#"><i class="bi bi-twitter"></i></a>
+                        <a href="#"><i class="bi bi-instagram"></i></a>
+                        <a href="#"><i class="bi bi-linkedin"></i></a>
+                        <a href="#"><i class="bi bi-youtube"></i></a>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <h5>Liens utiles</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="" class="text-white">Accueil</a></li>
-                        <li><a href="" class="text-white">Cours</a></li>
-                        <li><a href="#" class="text-white">À propos</a></li>
+                
+                <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
+                    <h3 class="footer-title">Liens rapides</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Accueil</a></li>
+                        <li><a href="#">Cours</a></li>
+                        <li><a href="#">À propos</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Contact</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4">
-                    <h5>Contact</h5>
-                    <p>Email : support@afterschool.com</p>
-                    <p>Téléphone : +123 456 789</p>
+                
+                <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
+                    <h3 class="footer-title">Catégories</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Développement</a></li>
+                        <li><a href="#">Design</a></li>
+                        <li><a href="#">Business</a></li>
+                        <li><a href="#">Marketing</a></li>
+                        <li><a href="#">Photographie</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-4">
+                    <h3 class="footer-title">Contactez-nous</h3>
+                    <p><i class="bi bi-geo-alt me-2"></i> 123 Rue de l'Éducation, Paris, France</p>
+                    <p><i class="bi bi-envelope me-2"></i> contact@afterschool.com</p>
+                    <p><i class="bi bi-phone me-2"></i> +33 1 23 45 67 89</p>
+                    <div class="mt-4">
+                        <a href="#" class="btn btn-outline-light">Nous écrire</a>
+                    </div>
                 </div>
             </div>
-            <hr class="bg-white">
-            <p class="text-center mb-0">© 2025 After School. Tous droits réservés.</p>
+            
+            <div class="footer-bottom text-center">
+                <p class="mb-0">&copy; 2025 After School. Tous droits réservés.</p>
+            </div>
         </div>
     </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS animation
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+        
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+        
+        // Course notification buttons
+        document.querySelectorAll('.notify-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const courseId = this.getAttribute('data-course-id');
+                // Add your notification logic here
+                this.innerHTML = '<i class="bi bi-check"></i> Notifié';
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-success');
+            });
+        });
+    </script>
 </body>
 </html>
+
+
