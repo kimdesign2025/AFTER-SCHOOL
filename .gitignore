@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+*.env
+.env.*
+
+# Django
+db.sqlite3
+/staticfiles/
+/media/
+/*.pyc
+
+# Migrations (optional - only ignore if you're sure)
+**/migrations/*.pyc
+**/migrations/__pycache__/
+# Uncomment next line if you want to ignore initial migration files too
+# **/migrations/*.py
+
+# VSCode or other editor folders
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+venv/

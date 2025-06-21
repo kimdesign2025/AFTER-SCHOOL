@@ -76,17 +76,23 @@ WSGI_APPLICATION = 'afterschool.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'afterschool',
+#         'USER': 'postgres',  # Ou 'afterschool_user' si vous avez créé un utilisateur spécifique
+#         'PASSWORD': 'votre_mot_de_passe_postgres',  # Remplacez par le mot de passe de l'utilisateur
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'afterschool',
-        'USER': 'postgres',  # Ou 'afterschool_user' si vous avez créé un utilisateur spécifique
-        'PASSWORD': 'votre_mot_de_passe_postgres',  # Remplacez par le mot de passe de l'utilisateur
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
