@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from datetime import timedelta
 import uuid
@@ -11,7 +10,7 @@ from .managers import UserManager
 # Choices pour le rôle de l'utilisateur
 USER_ROLES = (
     ('learner', 'Apprenant'),
-    ('teacher', 'Enseignant'),
+    ('admin', 'Administrateur'),  # Replaced 'teacher' role as it will be managed by Teacher model
 )
 
 # Choices pour le statut de la demande d'enseignant
@@ -74,7 +73,7 @@ class BaseModel(models.Model):
         verbose_name_plural = _("Base Models")
 
 class User(AbstractUser, BaseModel):
-    """Custom user model managing three types of users: superuser, learner, and teacher."""
+    """Custom user model managing users: superuser, learner, and admin."""
     
     email = models.EmailField(
         max_length=254,
@@ -122,7 +121,7 @@ class User(AbstractUser, BaseModel):
         choices=USER_ROLES,
         default='learner',
         verbose_name=_("Role"),
-        help_text=_("User's role (learner or teacher).")
+        help_text=_("User's role (learner or admin).")
     )
     username = None
     EMAIL_FIELD = "email"
@@ -158,12 +157,6 @@ class Profile(BaseModel):
         verbose_name=_("Bio"),
         help_text=_("User's biography or description.")
     )
-    qualifications = models.TextField(
-        blank=True,
-        null=True,
-        verbose_name=_("Qualifications"),
-        help_text=_("User's qualifications (used for teacher requests).")
-    )
     address = models.CharField(
         max_length=255,
         blank=True,
@@ -178,6 +171,48 @@ class Profile(BaseModel):
 
     def __str__(self):
         return f"Profile of {self.user.full_name}"
+
+class Teacher(BaseModel):
+    """Model representing a teacher, linked to a User."""
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="teacher_profile",
+        verbose_name=_("User"),
+        help_text=_("User account associated with the teacher.")
+    )
+    qualifications = models.TextField(
+        verbose_name=_("Qualifications"),
+        help_text=_("Teacher's qualifications.")
+    )
+    bio = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_("Bio"),
+        help_text=_("Teacher's biography or description.")
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Designates whether this teacher is active.")
+    )
+
+    class Meta:
+        verbose_name = _("Teacher")
+        verbose_name_plural = _("Teachers")
+        ordering = ["-created_at"]
+
+    def clean(self):
+        """Validation: Ensure the associated user has role 'learner' or 'admin'."""
+        if self.user.role not in ['learner', 'admin']:
+            raise ValidationError(_("Only users with learner or admin roles can be teachers."))
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Teacher: {self.user.full_name}"
 
 class TeacherRequest(BaseModel):
     """Model to handle requests to become a teacher."""
@@ -220,15 +255,25 @@ class TeacherRequest(BaseModel):
         verbose_name_plural = _("Teacher Requests")
 
     def clean(self):
-        """Validation: Ensure user is a learner and has no pending requests."""
+        """Validation: Ensure user is a learner and has no pending requests or existing teacher profile."""
         if self.user.role != 'learner':
             raise ValidationError(_("Only learners can submit teacher requests."))
         if TeacherRequest.objects.filter(user=self.user, status='pending').exists():
             raise ValidationError(_("You already have a pending teacher request."))
+        if hasattr(self.user, 'teacher_profile'):
+            raise ValidationError(_("This user is already a teacher."))
 
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+        # If approved, create a Teacher instance
+        if self.status == 'approved' and not hasattr(self.user, 'teacher_profile'):
+            Teacher.objects.create(
+                user=self.user,
+                qualifications=self.qualifications,
+                bio=f"Teacher profile for {self.user.full_name}",
+                is_active=True
+            )
 
     def __str__(self):
         return f"Teacher Request by {self.user.email} - {self.get_status_display()}"

@@ -12,6 +12,13 @@ from django.utils import timezone
 from .forms import SignUpForm
 from .models import User, TeacherRequest
 from .tokens import registration_token
+from django.views.generic import TemplateView
+from django.views.generic import TemplateView, View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import render
+from course.models import Course
+from course.enums import ClassLevel
+
 def home(request):
     """Vue pour la page d'accueil."""
     if request.user.is_authenticated:
@@ -55,7 +62,7 @@ def activate(request, uidb64, token):
         user.save()
         login(request, user)
         messages.success(request, _("Votre compte a été activé avec succès !"))
-        return redirect('users:profile')
+        return redirect('users:student_dashboard')
     else:
         messages.error(request, _("Le lien d'activation est invalide ou a expiré."))
         return redirect('users:signup')
@@ -74,17 +81,46 @@ def login_view(request):
                 elif user.role == 'teacher':
                     return redirect('users:teacher_dashboard')
                 else:  # learner
-                    return redirect('users:admin_student')
+                    return redirect('users:student_dashboard')
             else:
                 messages.error(request, _("Votre compte n'est pas activé. Vérifiez votre email."))
         else:
             messages.error(request, _("Email ou mot de passe incorrect."))
     return render(request, 'users/login.html')
 
-@login_required
-def admin_student(request):
-    """Vue pour le profil utilisateur."""
-    return render(request, 'users/admin_student.html', {'user': request.user})
+class StudentDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/student/admin_student.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['courses'] = Course.objects.filter(is_public=True, status='published')
+        return context
+
+class MyCoursesView(LoginRequiredMixin, View):
+    def get(self, request):
+        class_level = request.GET.get('class_level')
+        context = {
+            'class_levels': ClassLevel.choices,
+            'selected_class': class_level,
+            'selected_class_label': dict(ClassLevel.choices).get(class_level, ''),
+        }
+        if class_level:
+            context['courses'] = Course.objects.filter(
+                is_public=True, status='published', class_level=class_level
+            )
+        return render(request, 'users/student/my_courses.html', context)
+
+class ProgressView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/student/progress.html'
+
+class CertificatesView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/student/certificates.html'
+
+class MessagesView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/student/messages.html'
+
+class SettingsView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/student/settings.html'
 
 @login_required
 def admin_dashboard(request):

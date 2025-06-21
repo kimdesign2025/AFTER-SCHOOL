@@ -1,8 +1,9 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 import uuid
-from users.models import User, BaseModel  # Assuming the User model is in the 'users' app
+from users.models import Teacher, BaseModel
 from .enums import ClassLevel, CourseStatus, CourseCategory
 
 class Course(BaseModel):
@@ -47,7 +48,7 @@ class Course(BaseModel):
         help_text=_("Prerequisites for taking the course (optional).")
     )
     teacher = models.ForeignKey(
-        User,
+        Teacher,
         on_delete=models.CASCADE,
         related_name="courses",
         verbose_name=_("Teacher"),
@@ -78,6 +79,14 @@ class Course(BaseModel):
         verbose_name=_("Estimated Duration (hours)"),
         help_text=_("Estimated duration of the course in hours (optional).")
     )
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name=_("Price"),
+        help_text=_("Price of the course (0.00 for free)."),
+        validators=[MinValueValidator(0.00)]
+    )
 
     class Meta:
         verbose_name = _("Course")
@@ -85,16 +94,16 @@ class Course(BaseModel):
         ordering = ["-created_at"]
 
     def clean(self):
-        """Validation: Ensure only teachers can create courses."""
-        if self.teacher.role != 'teacher':
-            raise ValidationError(_("Only teachers can create courses."))
+        """Validation: Ensure teacher is active."""
+        if not self.teacher.is_active:
+            raise ValidationError(_("Only active teachers can create courses."))
 
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.title} ({self.get_class_level_display()}) by {self.teacher.full_name}"
+        return f"{self.title} ({self.get_class_level_display()}) by {self.teacher.user.full_name}"
 
 class Module(BaseModel):
     """Model representing a module within a course."""
@@ -138,3 +147,112 @@ class Module(BaseModel):
 
     def __str__(self):
         return f"{self.title} (Module {self.order} of {self.course.title})"
+
+class ModuleCompletion(BaseModel):
+    """Model to track module completion by users."""
+    user = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name="module_completions",
+        verbose_name=_("User"),
+        help_text=_("User who completed the module.")
+    )
+    module = models.ForeignKey(
+        Module,
+        on_delete=models.CASCADE,
+        related_name="completions",
+        verbose_name=_("Module"),
+        help_text=_("Module that was completed.")
+    )
+
+    class Meta:
+        verbose_name = _("Module Completion")
+        verbose_name_plural = _("Module Completions")
+        unique_together = ('user', 'module')
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user.full_name} completed {self.module.title}"
+
+class CourseReview(BaseModel):
+    """Model for user reviews of a course."""
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="reviews",
+        verbose_name=_("Course"),
+        help_text=_("Course being reviewed.")
+    )
+    user = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name="course_reviews",
+        verbose_name=_("User"),
+        help_text=_("User who submitted the review.")
+    )
+    rating = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        verbose_name=_("Rating"),
+        help_text=_("Rating from 1 to 5.")
+    )
+    comment = models.TextField(
+        verbose_name=_("Comment"),
+        help_text=_("Review comment.")
+    )
+
+    class Meta:
+        verbose_name = _("Course Review")
+        verbose_name_plural = _("Course Reviews")
+        unique_together = ('course', 'user')
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Review of {self.course.title} by {self.user.full_name} ({self.rating}/5)"
+
+class CourseEnrollment(BaseModel):
+    """Model to track users enrolled in a course."""
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+        verbose_name=_("Course"),
+        help_text=_("Course the user is enrolled in.")
+    )
+    user = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+        verbose_name=_("User"),
+        help_text=_("User enrolled in the course.")
+    )
+
+    class Meta:
+        verbose_name = _("Course Enrollment")
+        verbose_name_plural = _("Course Enrollments")
+        unique_together = ('course', 'user')
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user.full_name} enrolled in {self.course.title}"
+
+    @property
+    def progress(self):
+        """Calculate progress as percentage of completed modules."""
+        total_modules = self.course.modules.count()
+        if total_modules == 0:
+            return 0
+        completed_modules = ModuleCompletion.objects.filter(
+            user=self.user, module__course=self.course
+        ).count()
+        return (completed_modules / total_modules) * 100
+
+    @property
+    def is_completed(self):
+        """Check if all modules are completed."""
+        total_modules = self.course.modules.count()
+        if total_modules == 0:
+            return False
+        completed_modules = ModuleCompletion.objects.filter(
+            user=self.user, module__course=self.course
+        ).count()
+        return completed_modules == total_modules
