@@ -143,7 +143,7 @@ def admin_dashboard(request):
 def teacher_dashboard(request):
     """Vue pour le tableau de bord enseignant."""
     if request.user.role != 'teacher':
-        return redirect('profile')
+        return redirect('users:profile')
     context = {
         'user': request.user,
         # Ajoutez des données spécifiques aux enseignants (par exemple, cours)

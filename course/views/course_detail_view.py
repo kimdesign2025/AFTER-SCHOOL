@@ -14,25 +14,29 @@ class CourseDetailView(DetailView):
     template_name = 'users/student/course/course_detail.html'
     context_object_name = 'course'
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not request.user.is_authenticated:
+            return redirect(f"{reverse_lazy('users:login')}?next={request.path}")
+        if not CourseEnrollment.objects.filter(user=request.user, course=self.object).exists():
+            return redirect('courses:course_list')  # Redirect non-enrolled users
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['other_courses'] = Course.objects.filter(
             is_public=True, status='published'
         ).exclude(id=self.object.id)[:3]
-        if self.request.user.is_authenticated:
-            context['is_enrolled'] = CourseEnrollment.objects.filter(
-                user=self.request.user, course=self.object
-            ).exists()
-            if context['is_enrolled']:
-                context['can_download_certificate'] = CourseEnrollment.objects.get(
-                    user=self.request.user, course=self.object
-                ).is_completed
-            # Add module completion status
-            context['module_completions'] = {
-                module.id: ModuleCompletion.objects.filter(
-                    user=self.request.user, module=module
-                ).exists() for module in self.object.modules.all()
-            }
+        context['is_enrolled'] = True  # User must be enrolled to reach this point
+        context['can_download_certificate'] = CourseEnrollment.objects.get(
+            user=self.request.user, course=self.object
+        ).is_completed
+        # Add module completion status
+        context['module_completions'] = {
+            module.id: ModuleCompletion.objects.filter(
+                user=self.request.user, module=module
+            ).exists() for module in self.object.modules.all()
+        }
         return context
 
 class CourseEnrollView(LoginRequiredMixin, View):
