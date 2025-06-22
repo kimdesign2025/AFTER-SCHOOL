@@ -1,0 +1,198 @@
+{% extends 'users/teacher/teacher_base.html' %}
+{% load static %}
+
+{% block title %}Créer un cours - Enseignant - After School{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-header {
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        align-items: center;
+    }
+    .form-content {
+        padding: 2rem;
+        background-color: #fff;
+    }
+    .form-group label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #4a4a4a;
+    }
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        padding: 0.75rem;
+        transition: border-color 0.3s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.1);
+    }
+    .module-formset {
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        background-color: #f8f9fa;
+    }
+    .module-formset h5 {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+    }
+    .module-form {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .btn-add-module {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        transition: background-color 0.3s;
+    }
+    .btn-add-module:hover {
+        background-color: #3ab0d8;
+    }
+    .btn-remove-module {
+        color: var(--danger-color);
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: color 0.3s;
+    }
+    .btn-remove-module:hover {
+        color: #c0392b;
+    }
+    .invalid-feedback {
+        color: var(--danger-color);
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 offset-lg-1">
+        <div class="card">
+            <div class="form-header">
+                <h2 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Créer un nouveau cours</h2>
+            </div>
+            <div class="form-content">
+                <form method="post" enctype="multipart/form-data" id="course-form">
+                    {% csrf_token %}
+                    <div class="row">
+                        {% for field in form %}
+                        <div class="col-md-6 form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ field.errors|join:" " }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="module-formset mt-4">
+                        <h5><i class="bi bi-book me-2"></i>Modules</h5>
+                        {{ module_formset.management_form }}
+                        <div id="module-forms">
+                            {% for form in module_formset %}
+                            <div class="module-form position-relative">
+                                <div class="row">
+                                    {% for field in form %}
+                                    {% if field.name != 'order' %}
+                                    <div class="col-md-6 form-group">
+                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {{ field }}
+                                        {% if field.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ field.errors|join:" " }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    {{ field }}
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% if forloop.counter > 1 %}
+                                <i class="bi bi-trash btn-remove-module position-absolute top-0 end-0 m-2"></i>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-add-module mt-2">
+                            <i class="bi bi-plus-lg me-2"></i>Ajouter un module
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'courses:teacher_courses' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-2"></i>Créer le cours
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const moduleForms = document.getElementById('module-forms');
+    const addModuleBtn = document.querySelector('.btn-add-module');
+    let formCount = {{ module_formset.total_form_count }};
+
+    // Clone the first module form for adding new ones
+    const emptyForm = moduleForms.children[0].cloneNode(true);
+    emptyForm.querySelectorAll('input, textarea').forEach(input => {
+        input.value = '';
+        input.name = input.name.replace(/-\d+-/, `-__prefix__-`);
+        input.id = input.id.replace(/-\d+-/, `-__prefix__-`);
+    });
+
+    // Update TOTAL_FORMS in management form
+    function updateTotalForms() {
+        const totalForms = document.querySelector('#id_form-TOTAL_FORMS');
+        totalForms.value = formCount;
+    }
+
+    // Add new module form
+    addModuleBtn.addEventListener('click', function() {
+        const newForm = emptyForm.cloneNode(true);
+        newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formCount);
+        newForm.classList.add('position-relative');
+        newForm.insertAdjacentHTML('beforeend', '<i class="bi bi-trash btn-remove-module position-absolute top-0 end-0 m-2"></i>');
+        moduleForms.appendChild(newForm);
+        formCount++;
+        updateTotalForms();
+        attachRemoveHandlers();
+    });
+
+    // Remove module form
+    function attachRemoveHandlers() {
+        document.querySelectorAll('.btn-remove-module').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.parentElement.remove();
+                formCount--;
+                updateTotalForms();
+            });
+        });
+    }
+    attachRemoveHandlers();
+});
+</script>
+{% endblock %}
