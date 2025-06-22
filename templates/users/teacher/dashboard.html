@@ -1,0 +1,70 @@
+{% extends 'users/teacher/teacher_base.html' %}
+{% load static %}
+
+{% block title %}Tableau de bord - Enseignant - After School{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+    }
+    .course-list {
+        padding: 2rem;
+    }
+    .course-item {
+        padding: 1rem;
+        background-color: var(--light-color);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .course-item img {
+        max-width: 100px;
+        border-radius: 8px;
+    }
+    .create-course-btn {
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 offset-lg-1">
+        <div class="card">
+            <div class="dashboard-header">
+                <h2 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord enseignant</h2>
+            </div>
+            <div class="course-list">
+                <a href="{% url 'courses:create_course' %}" class="btn btn-primary create-course-btn">
+                    <i class="bi bi-plus-lg me-2"></i>Créer un nouveau cours
+                </a>
+                <h4 class="mb-3">Mes cours</h4>
+                {% if courses %}
+                {% for course in courses %}
+                <div class="course-item">
+                    <div>
+                        <strong>{{ course.title }}</strong>
+                        <p class="mb-0 text-muted">{{ course.get_class_level_display }} | {{ course.get_category_display }} | {{ course.get_status_display }}</p>
+                        {% if course.thumbnail %}
+                        <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="mt-2">
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'courses:teacher_courses'  %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-eye me-2"></i>Voir
+                    </a>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">Vous n'avez pas encore créé de cours.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,11 +1,11 @@
-from django.views.generic import FormView, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import FormView, TemplateView, CreateView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.contrib import messages
-from ..models import TeacherApplication, Qualification
-from ..forms import QualificationForm, TeacherApplicationStep1Form, TeacherApplicationStep2Form
+from ..models import TeacherApplication, Qualification, Course
+from ..forms import QualificationForm, TeacherApplicationStep1Form, TeacherApplicationStep2Form, CourseForm, ModuleFormSet
 from users.models import Teacher
 import logging
 
@@ -159,3 +159,39 @@ class TeacherDashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['courses'] = self.request.user.teacher_profile.courses.all()
         return context
+
+class CourseCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Course
+    form_class = CourseForm
+    template_name = 'users/teacher/create_course.html'  # Updated path
+    success_url = reverse_lazy('courses:teacher_dashboard')
+
+    def test_func(self):
+        """Restrict access to active teachers only."""
+        return hasattr(self.request.user, 'teacher_profile') and self.request.user.teacher_profile.is_active
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['module_formset'] = ModuleFormSet(self.request.POST, self.request.FILES)
+        else:
+            context['module_formset'] = ModuleFormSet()
+        return context
+
+    def form_valid(self, form):
+        """Set the teacher to the logged-in user's teacher profile and price to 0."""
+        form.instance.teacher = self.request.user.teacher_profile
+        form.instance.price = 0.00
+        context = self.get_context_data()
+        module_formset = context['module_formset']
+        if module_formset.is_valid():
+            self.object = form.save()
+            module_formset.instance = self.object
+            module_formset.save()
+            messages.success(self.request, "Cours créé avec succès !", extra_tags='toast-success')
+            return super().form_valid(form)
+        return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Veuillez corriger les erreurs dans le formulaire.", extra_tags='toast-error')
+        return super().form_invalid(form)

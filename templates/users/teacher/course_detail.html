@@ -1,0 +1,72 @@
+{% extends 'users/teacher/teacher_base.html' %}
+{% load static %}
+
+{% block title %}{{ course.title }} - Enseignant - After School{% endblock %}
+
+{% block extra_css %}
+<style>
+    .course-header {
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+    }
+    .course-content {
+        padding: 2rem;
+    }
+    .course-img {
+        max-width: 100%;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    .module-item {
+        padding: 1rem;
+        background-color: var(--light-color);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 offset-lg-1">
+        <div class="card">
+            <div class="course-header">
+                <h2 class="mb-0"><i class="bi bi-book me-2"></i>{{ course.title }}</h2>
+            </div>
+            <div class="course-content">
+                {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="course-img">
+                {% endif %}
+                <p><strong>Niveau:</strong> {{ course.get_class_level_display }}</p>
+                <p><strong>Catégorie:</strong> {{ course.get_category_display }}</p>
+                <p><strong>Statut:</strong> {{ course.get_status_display }}</p>
+                <p><strong>Description:</strong> {{ course.description|linebreaks }}</p>
+                <h4 class="mt-4">Modules</h4>
+                {% if course.modules.all %}
+                {% for module in course.modules.all %}
+                <div class="module-item">
+                    <strong>{{ module.title }}</strong>
+                    <p class="mb-0 text-muted">{{ module.description|truncatewords:20 }}</p>
+                    <a href="{% url 'courses:module_detail' module.id %}" class="btn btn-outline-primary btn-sm mt-2">
+                        <i class="bi bi-eye me-2"></i>Voir le module
+                    </a>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">Aucun module disponible.</p>
+                {% endif %}
+                <div class="mt-4">
+                    <a href="{% url 'courses:course_edit' course.id %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-pencil me-2"></i>Modifier le cours
+                    </a>
+                    <a href="{% url 'courses:teacher_courses' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left me-2"></i>Retour à mes cours
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

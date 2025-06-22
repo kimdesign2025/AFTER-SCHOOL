@@ -1,12 +1,8 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.forms import inlineformset_factory
-from .models import Course, Module
+from .models import Course, Module, Qualification, TeacherApplication
 from .enums import ClassLevel, CourseCategory
-from django import forms
-from .models import Qualification, TeacherApplication
-from .enums import CourseCategory
-from django.forms import modelformset_factory
 
 class CourseForm(forms.ModelForm):
     class Meta:
