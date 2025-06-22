@@ -1,5 +1,34 @@
 from django.contrib import admin
-from .models import Course, Module, CourseReview, CourseEnrollment
+
+from users.models import Teacher
+from .models import Course, Module, CourseReview, CourseEnrollment, Qualification, TeacherApplication
+
+@admin.register(TeacherApplication)
+class TeacherApplicationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'status', 'subject_expertise', 'created_at', 'updated_at')
+    list_filter = ('status',)
+    actions = ['approve_application', 'reject_application']
+
+    def approve_application(self, request, queryset):
+        for application in queryset:
+            if application.status == 'pending':
+                application.status = 'approved'
+                application.save()
+                Teacher.objects.get_or_create(user=application.user, defaults={'is_approved': True})
+                application.user.teacher_profile.is_approved = True
+                application.user.teacher_profile.save()
+        self.message_user(request, "Les demandes sélectionnées ont été approuvées.")
+    approve_application.short_description = "Approuver les demandes sélectionnées"
+
+    def reject_application(self, request, queryset):
+        queryset.update(status='rejected')
+        self.message_user(request, "Les demandes sélectionnées ont été rejetées.")
+    reject_application.short_description = "Rejeter les demandes sélectionnées"
+
+@admin.register(Qualification)
+class QualificationAdmin(admin.ModelAdmin):
+    list_display = ('title', 'application', 'issuing_organization', 'school', 'issue_date')
+    list_filter = ('application__user',)
 
 class ModuleInline(admin.StackedInline):
     model = Module

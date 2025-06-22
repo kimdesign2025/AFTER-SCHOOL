@@ -181,10 +181,6 @@ class Teacher(BaseModel):
         verbose_name=_("User"),
         help_text=_("User account associated with the teacher.")
     )
-    qualifications = models.TextField(
-        verbose_name=_("Qualifications"),
-        help_text=_("Teacher's qualifications.")
-    )
     bio = models.TextField(
         blank=True,
         null=True,
@@ -195,6 +191,11 @@ class Teacher(BaseModel):
         default=True,
         verbose_name=_("Active"),
         help_text=_("Designates whether this teacher is active.")
+    )
+    is_approved = models.BooleanField(
+        default=False,
+        verbose_name=_("Approved"),
+        help_text=_("Designates whether this teacher has been approved by an admin.")
     )
 
     class Meta:
@@ -214,69 +215,69 @@ class Teacher(BaseModel):
     def __str__(self):
         return f"Teacher: {self.user.full_name}"
 
-class TeacherRequest(BaseModel):
-    """Model to handle requests to become a teacher."""
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="teacher_requests",
-        verbose_name=_("User"),
-        help_text=_("User requesting to become a teacher.")
-    )
-    qualifications = models.TextField(
-        verbose_name=_("Qualifications"),
-        help_text=_("Qualifications provided for the teacher request.")
-    )
-    status = models.CharField(
-        max_length=20,
-        choices=TEACHER_REQUEST_STATUS,
-        default='pending',
-        verbose_name=_("Status"),
-        help_text=_("Current status of the teacher request.")
-    )
-    reviewed_at = models.DateTimeField(
-        blank=True,
-        null=True,
-        verbose_name=_("Reviewed at"),
-        help_text=_("Date and time when the request was reviewed.")
-    )
-    reviewed_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name='reviewed_requests',
-        verbose_name=_("Reviewed by"),
-        help_text=_("Admin who reviewed the request.")
-    )
+# class TeacherRequest(BaseModel):
+#     """Model to handle requests to become a teacher."""
+#     user = models.ForeignKey(
+#         User,
+#         on_delete=models.CASCADE,
+#         related_name="teacher_requests",
+#         verbose_name=_("User"),
+#         help_text=_("User requesting to become a teacher.")
+#     )
+#     qualifications = models.TextField(
+#         verbose_name=_("Qualifications"),
+#         help_text=_("Qualifications provided for the teacher request.")
+#     )
+#     status = models.CharField(
+#         max_length=20,
+#         choices=TEACHER_REQUEST_STATUS,
+#         default='pending',
+#         verbose_name=_("Status"),
+#         help_text=_("Current status of the teacher request.")
+#     )
+#     reviewed_at = models.DateTimeField(
+#         blank=True,
+#         null=True,
+#         verbose_name=_("Reviewed at"),
+#         help_text=_("Date and time when the request was reviewed.")
+#     )
+#     reviewed_by = models.ForeignKey(
+#         User,
+#         on_delete=models.SET_NULL,
+#         blank=True,
+#         null=True,
+#         related_name='reviewed_requests',
+#         verbose_name=_("Reviewed by"),
+#         help_text=_("Admin who reviewed the request.")
+#     )
 
-    class Meta:
-        verbose_name = _("Teacher Request")
-        verbose_name_plural = _("Teacher Requests")
+#     class Meta:
+#         verbose_name = _("Teacher Request")
+#         verbose_name_plural = _("Teacher Requests")
 
-    def clean(self):
-        """Validation: Ensure user is a learner and has no pending requests or existing teacher profile."""
-        if self.user.role != 'learner':
-            raise ValidationError(_("Only learners can submit teacher requests."))
-        if TeacherRequest.objects.filter(user=self.user, status='pending').exists():
-            raise ValidationError(_("You already have a pending teacher request."))
-        if hasattr(self.user, 'teacher_profile'):
-            raise ValidationError(_("This user is already a teacher."))
+#     def clean(self):
+#         """Validation: Ensure user is a learner and has no pending requests or existing teacher profile."""
+#         if self.user.role != 'learner':
+#             raise ValidationError(_("Only learners can submit teacher requests."))
+#         if TeacherRequest.objects.filter(user=self.user, status='pending').exists():
+#             raise ValidationError(_("You already have a pending teacher request."))
+#         if hasattr(self.user, 'teacher_profile'):
+#             raise ValidationError(_("This user is already a teacher."))
 
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
-        # If approved, create a Teacher instance
-        if self.status == 'approved' and not hasattr(self.user, 'teacher_profile'):
-            Teacher.objects.create(
-                user=self.user,
-                qualifications=self.qualifications,
-                bio=f"Teacher profile for {self.user.full_name}",
-                is_active=True
-            )
+#     def save(self, *args, **kwargs):
+#         self.clean()
+#         super().save(*args, **kwargs)
+#         # If approved, create a Teacher instance
+#         if self.status == 'approved' and not hasattr(self.user, 'teacher_profile'):
+#             Teacher.objects.create(
+#                 user=self.user,
+#                 qualifications=self.qualifications,
+#                 bio=f"Teacher profile for {self.user.full_name}",
+#                 is_active=True
+#             )
 
-    def __str__(self):
-        return f"Teacher Request by {self.user.email} - {self.get_status_display()}"
+#     def __str__(self):
+#         return f"Teacher Request by {self.user.email} - {self.get_status_display()}"
 
 class TwoFactorCode(BaseModel):
     """Model for two-factor authentication codes."""

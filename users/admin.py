@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
-from .models import User, Profile, Teacher, TeacherRequest, TwoFactorCode
+from .models import User, Profile, Teacher, TwoFactorCode
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -55,20 +55,20 @@ class TeacherAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('user')
 
-@admin.register(TeacherRequest)
-class TeacherRequestAdmin(admin.ModelAdmin):
-    list_display = ['user', 'status', 'reviewed_at', 'reviewed_by']
-    list_filter = ['status']
-    search_fields = ['user__email', 'user__first_name', 'user__last_name', 'qualifications']
-    readonly_fields = ['created_at', 'updated_at']
-    fieldsets = (
-        (None, {
-            'fields': ('user', 'qualifications', 'status', 'reviewed_at', 'reviewed_by')
-        }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at', 'id', 'ip_address', 'author', 'metadata')
-        }),
-    )
+# @admin.register(TeacherRequest)
+# class TeacherRequestAdmin(admin.ModelAdmin):
+#     list_display = ['user', 'status', 'reviewed_at', 'reviewed_by']
+#     list_filter = ['status']
+#     search_fields = ['user__email', 'user__first_name', 'user__last_name', 'qualifications']
+#     readonly_fields = ['created_at', 'updated_at']
+#     fieldsets = (
+#         (None, {
+#             'fields': ('user', 'qualifications', 'status', 'reviewed_at', 'reviewed_by')
+#         }),
+#         ('Metadata', {
+#             'fields': ('created_at', 'updated_at', 'id', 'ip_address', 'author', 'metadata')
+#         }),
+#     )
 
 @admin.register(TwoFactorCode)
 class TwoFactorCodeAdmin(admin.ModelAdmin):

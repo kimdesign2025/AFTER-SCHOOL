@@ -4,7 +4,108 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 import uuid
 from users.models import Teacher, BaseModel
-from .enums import ClassLevel, CourseStatus, CourseCategory
+from .enums import ClassLevel, CourseStatus, CourseCategory, TeacherApplicationStatus
+
+class Qualification(BaseModel):
+    """Model representing a teacher's qualification or certificate."""
+    application = models.ForeignKey(
+        'TeacherApplication',
+        on_delete=models.CASCADE,
+        related_name='qualifications',
+        verbose_name=_("Application"),
+        help_text=_("Teacher application this qualification belongs to.")
+    )
+    title = models.CharField(
+        max_length=200,
+        verbose_name=_("Title"),
+        help_text=_("Title of the qualification or certificate.")
+    )
+    issuing_organization = models.CharField(
+        max_length=200,
+        verbose_name=_("Issuing Organization"),
+        help_text=_("Organization that issued the qualification.")
+    )
+    issue_date = models.DateField(
+        verbose_name=_("Issue Date"),
+        help_text=_("Date the qualification was issued.")
+    )
+    certificate_file = models.FileField(
+        upload_to='certificates/',
+        verbose_name=_("Certificate File"),
+        blank=True,
+        null=True,
+        help_text=_("Optional file upload for the certificate (PDF or image).")
+    )
+    school = models.CharField(
+        max_length=200,
+        verbose_name=_("School/Institution"),
+        help_text=_("School or institution where the qualification was earned.")
+    )
+
+    class Meta:
+        verbose_name = _("Qualification")
+        verbose_name_plural = _("Qualifications")
+        ordering = ["-issue_date"]
+
+    def __str__(self):
+        return f"{self.title} - {self.application.user.username}"
+
+class TeacherApplication(BaseModel):
+    """Model representing a user's application to become a teacher."""
+    user = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name='teacher_applications',
+        verbose_name=_("User"),
+        help_text=_("User submitting the application.")
+    )
+    teaching_experience = models.TextField(
+        verbose_name=_("Teaching Experience"),
+        help_text=_("Details of teaching experience, including years and roles.")
+    )
+    subject_expertise = models.CharField(
+        max_length=200,
+        verbose_name=_("Subject Expertise"),
+        help_text=_("Subjects the applicant is qualified to teach.")
+    )
+    identity_card = models.CharField(
+        max_length=100,
+        verbose_name=_("Identity Card Number"),
+        help_text=_("National identity card number.")
+    )
+    identity_card_picture = models.ImageField(
+        upload_to='identity_cards/',
+        verbose_name=_("Identity Card Picture"),
+        help_text=_("Upload a clear image of your identity card."),
+        null=True,
+        blank=True
+    )
+    city = models.CharField(
+        max_length=100,
+        verbose_name=_("City"),
+        help_text=_("City of residence.")
+    )
+    phone_number = models.CharField(
+        max_length=20,
+        verbose_name=_("Phone Number"),
+        blank=True,
+        help_text=_("Contact phone number (optional).")
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=TeacherApplicationStatus.choices,
+        default=TeacherApplicationStatus.PENDING,
+        verbose_name=_("Status"),
+        help_text=_("Current status of the application.")
+    )
+
+    class Meta:
+        verbose_name = _("Teacher Application")
+        verbose_name_plural = _("Teacher Applications")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_status_display()}"
 
 class Course(BaseModel):
     """Model representing a course created by a teacher."""

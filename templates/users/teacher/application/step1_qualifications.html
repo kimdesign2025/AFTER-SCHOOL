@@ -1,0 +1,133 @@
+{% extends 'users/student/base_student.html' %}
+{% load static %}
+
+{% block title %}Devenir enseignant - Étape 1: Qualifications - After School{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    .form-header {
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+    }
+    .form-body {
+        padding: 2rem;
+    }
+    .qualification-list li {
+        padding: 0.75rem;
+        background-color: var(--light-color);
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#qualification-form').on('submit', function(e) {
+        e.preventDefault();
+        let formData = new FormData(this);
+        $.ajax({
+            url: "{% url 'courses:teacher_application_step1_qualifications' %}",
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    $('#qualification-list').append(`
+                        <li class="list-group-item" data-id="${response.qualification.id}">
+                            <strong>${response.qualification.title}</strong> - 
+                            ${response.qualification.issuing_organization}, 
+                            ${response.qualification.school}, 
+                            ${response.qualification.issue_date}
+                            ${response.qualification.certificate_file ? '<span class="badge bg-success ms-2">Certificat</span>' : ''}
+                        </li>
+                    `);
+                    $('#qualification-count').text(response.qualification_count);
+                    $('#qualification-form')[0].reset();
+                    if (response.qualification_count >= 1) {
+                        $('#next-button').removeClass('d-none');
+                    }
+                    window.toastManager.showToast('Qualification ajoutée avec succès.', 'success', 'top-right');
+                }
+            },
+            error: function(xhr) {
+                let errors = JSON.parse(xhr.responseJSON.errors);
+                let errorMessages = [];
+                for (let field in errors) {
+                    errors[field].forEach(function(error) {
+                        errorMessages.push(error.message);
+                    });
+                }
+                window.toastManager.showToast(errorMessages.join('<br>'), 'error', 'top-right');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 offset-lg-1">
+        <div class="form-card">
+            <div class="form-header">
+                <h2 class="mb-0"><i class="bi bi-list-check me-2"></i>Devenir enseignant - Étape 1: Qualifications (au moins 1)</h2>
+            </div>
+            <div class="form-body">
+                <p>Qualifications ajoutées: <span id="qualification-count">{{ qualification_count }}</span>/1</p>
+                <ul id="qualification-list" class="list-group mb-3 qualification-list">
+                    {% for qualification in qualifications %}
+                    <li class="list-group-item" data-id="{{ qualification.id }}">
+                        <strong>{{ qualification.title }}</strong> - 
+                        {{ qualification.issuing_organization }}, 
+                        {{ qualification.school }}, 
+                        {{ qualification.issue_date }}
+                        {% if qualification.certificate_file %}
+                        <span class="badge bg-success ms-2">Certificat</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                <form id="qualification-form" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Titre</label>
+                        {{ form.title }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.issuing_organization.id_for_label }}" class="form-label">Organisation émettrice</label>
+                        {{ form.issuing_organization }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.school.id_for_label }}" class="form-label">École/Institution</label>
+                        {{ form.school }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.issue_date.id_for_label }}" class="form-label">Date d'émission</label>
+                        {{ form.issue_date }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.certificate_file.id_for_label }}" class="form-label">Certificat (PDF ou image, facultatif)</label>
+                        {{ form.certificate_file }}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ previous_step_url }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Retour</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Ajouter</button>
+                        <a href="{% url 'courses:teacher_application_step2' %}" class="btn btn-primary {% if not can_proceed %}d-none{% endif %}" id="next-button"><i class="bi bi-arrow-right me-2"></i>Suivant</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

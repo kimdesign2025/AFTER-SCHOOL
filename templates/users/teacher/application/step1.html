@@ -1,0 +1,62 @@
+{% extends 'users/student/base_student.html' %}
+{% load static %}
+
+{% block title %}Devenir enseignant - Étape 1 - After School{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    .form-header {
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+    }
+    .form-body {
+        padding: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 offset-lg-1">
+        <div class="form-card">
+            <div class="form-header">
+                <h2 class="mb-0"><i class="bi bi-person me-2"></i>Devenir enseignant - Étape 1: Expérience et expertise</h2>
+            </div>
+            <div class="form-body">
+                <form method="post" action="{% url 'courses:teacher_application_step1' %}">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label for="{{ form.teaching_experience.id_for_label }}" class="form-label">Expérience d'enseignement</label>
+                        {{ form.teaching_experience }}
+                        {% if form.teaching_experience.errors %}
+                            <div class="text-danger">{{ form.teaching_experience.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.subject_expertise.id_for_label }}" class="form-label">Expertise en matière</label>
+                        {{ form.subject_expertise }}
+                        {% if form.subject_expertise.errors %}
+                            <div class="text-danger">{{ form.subject_expertise.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-right me-2"></i>Suivant</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

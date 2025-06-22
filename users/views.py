@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from .forms import SignUpForm
-from .models import User, TeacherRequest
+from .models import User
 from .tokens import registration_token
 from django.views.generic import TemplateView
 from django.views.generic import TemplateView, View
@@ -222,6 +222,3 @@ def logout_view(request):
     return redirect('users:home')
     
 
-def course(request):
-    """Vue pour rediriger vers la page cours.html."""
-    return render(request, 'users/court.html')

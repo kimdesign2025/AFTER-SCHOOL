@@ -28,3 +28,16 @@ class CourseCategory(models.TextChoices):
     COMPUTER_SCIENCE = 'computer_science', _('Computer Science')
     LANGUAGES = 'languages', _('Languages')
     OTHER = 'other', _('Other')
+
+class TeacherApplicationStatus:
+    DRAFT = 'draft'
+    PENDING = 'pending'
+    APPROVED = 'approved'
+    REJECTED = 'rejected'
+
+    choices = [
+        (DRAFT, _('Draft')),
+        (PENDING, _('Pending')),
+        (APPROVED, _('Approved')),
+        (REJECTED, _('Rejected')),
+    ]
