@@ -1,0 +1,122 @@
+{% extends 'users/student/base_student.html' %}
+{% load static %}
+
+{% block title %}Devenir enseignant - Confirmation - After School{% endblock %}
+
+{% block extra_css %}
+<style>
+    .confirmation-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    .confirmation-header {
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+    }
+    .confirmation-body {
+        padding: 2rem;
+    }
+    .confirmation-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .confirmation-item:last-child {
+        border-bottom: none;
+    }
+    .confirmation-item-label {
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+    .confirmation-item-value {
+        color: #4a4a4a;
+    }
+    .qualification-list {
+        margin: 1rem 0;
+        padding-left: 1.5rem;
+    }
+    .qualification-list li {
+        margin-bottom: 0.5rem;
+    }
+    .confirmation-image {
+        max-width: 250px;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+    }
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 offset-lg-1">
+        <div class="confirmation-card">
+            <div class="confirmation-header">
+                <h2 class="mb-0"><i class="bi bi-check-circle me-2"></i>Confirmation de votre demande d'enseignant</h2>
+            </div>
+            <div class="confirmation-body">
+                <h4 class="mb-4">Récapitulatif</h4>
+                <div class="confirmation-item">
+                    <span class="confirmation-item-label">Expérience d'enseignement</span>
+                    <span class="confirmation-item-value">{{ application.teaching_experience }}</span>
+                </div>
+                <div class="confirmation-item">
+                    <span class="confirmation-item-label">Expertise en matière</span>
+                    <span class="confirmation-item-value">{{ application.subject_expertise }}</span>
+                </div>
+                <div class="confirmation-item">
+                    <span class="confirmation-item-label">Qualifications</span>
+                    <span class="confirmation-item-value">
+                        <ul class="qualification-list">
+                            {% for qualification in application.qualifications.all %}
+                            <li>{{ qualification.title }} - {{ qualification.issuing_organization }}, {{ qualification.school }}, {{ qualification.issue_date }}</li>
+                            {% empty %}
+                            <li>Aucune qualification ajoutée</li>
+                            {% endfor %}
+                        </ul>
+                    </span>
+                </div>
+                <div class="confirmation-item">
+                    <span class="confirmation-item-label">Numéro de carte d'identité</span>
+                    <span class="confirmation-item-value">{{ application.identity_card }}</span>
+                </div>
+                {% if application.identity_card_picture %}
+                <div class="confirmation-item">
+                    <span class="confirmation-item-label">Photo de la carte d'identité</span>
+                    <span class="confirmation-item-value">
+                        <img src="{{ application.identity_card_picture.url }}" alt="Identity Card" class="confirmation-image">
+                    </span>
+                </div>
+                {% endif %}
+                <div class="confirmation-item">
+                    <span class="confirmation-item-label">Ville</span>
+                    <span class="confirmation-item-value">{{ application.city }}</span>
+                </div>
+                <div class="confirmation-item">
+                    <span class="confirmation-item-label">Numéro de téléphone</span>
+                    <span class="confirmation-item-value">{{ application.phone_number|default:"Non fourni" }}</span>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="button-group">
+                        <a href="{{ previous_step_url }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Retour
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>Soumettre
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

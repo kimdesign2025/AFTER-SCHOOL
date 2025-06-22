@@ -1,0 +1,117 @@
+{% extends 'users/student/base_student.html' %}
+{% load static course_tags %}
+
+{% block title %}{{ course.title }} - After School{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">{{ course.title }}</h2>
+            </div>
+            <div class="card-body">
+                {% if user.is_authenticated %}
+                    <span class="text-success mb-3 d-inline-block">Inscrit</span>
+                    {% if can_download_certificate %}
+                    <a href="{% url 'courses:download_certificate' course.id %}" class="btn btn-success mb-3">Télécharger le certificat</a>
+                    {% endif %}
+                    {% if course.thumbnail %}
+                    <img src="{{ course.thumbnail.url }}" class="img-fluid rounded mb-3" alt="{{ course.title }}">
+                    {% endif %}
+                    <p><strong>Description:</strong> {{ course.description }}</p>
+                    <p><strong>Niveau de classe:</strong> {{ course.get_class_level_display }}</p>
+                    <p><strong>Enseignant:</strong> {{ course.teacher.user.full_name }}</p>
+                    <p><strong>Catégorie:</strong> {{ course.get_category_display }}</p>
+                    <p><strong>Prix:</strong> Gratuit</p>
+                    {% if course.prerequisites %}
+                    <p><strong>Prérequis:</strong> {{ course.prerequisites }}</p>
+                    {% endif %}
+                    {% if course.estimated_duration %}
+                    <p><strong>Durée:</strong> {{ course.estimated_duration }} heures</p>
+                    {% endif %}
+                    <h4>Modules</h4>
+                    <ul class="list-group mb-3">
+                        {% for module in course.modules.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{% url 'courses:module_detail' module.id %}">{{ module.title }}</a>
+                            {% if module_completions|lookup:module.id %}
+                            <span class="badge bg-success">Complété</span>
+                            {% endif %}
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">Aucun module disponible.</li>
+                        {% endfor %}
+                    </ul>
+                    <h4>Avis</h4>
+                    {% for review in course.reviews.all %}
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <p><strong>{{ review.user.full_name }}</strong> ({{ review.rating }}/5)</p>
+                            <p>{{ review.comment }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>Aucun avis pour le moment.</p>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-danger">Veuillez vous connecter pour voir les détails du cours.</p>
+                    <a href="{% url 'users:login' %}" class="btn btn-primary mb-3">Connexion</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-book"></i> Autres cours
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for other_course in other_courses %}
+                    <div class="col-md-6 col-lg-12 mb-3">
+                        <div class="course-card">
+                            {% if other_course.thumbnail %}
+                            <img src="{{ other_course.thumbnail.url }}" class="course-img w-100" alt="{{ other_course.title }}">
+                            {% endif %}
+                            <div class="p-3">
+                                <h6>{{ other_course.title }}</h6>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted">
+                                        <i class="bi bi-person me-1"></i>{{ other_course.teacher.user.full_name }}
+                                    </span>
+                                    <span class="small text-muted">
+                                        <i class="bi bi-bookmark me-1"></i>{{ other_course.get_class_level_display }}
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-success">Gratuit</span>
+                                    {% if user.is_authenticated %}
+                                        {% if user not in other_course.enrollments.all %}
+                                        <form method="post" action="{% url 'courses:course_enroll' other_course.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">S'inscrire</button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-success">Inscrit</span>
+                                        {% endif %}
+                                    {% else %}
+                                    <a href="{% url 'users:login' %}" class="btn btn-sm btn-outline-primary">Connexion pour s'inscrire</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-4">
+                        <i class="bi bi-book fs-1 text-muted mb-3"></i>
+                        <h5 class="text-muted">Aucun autre cours disponible</h5>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
