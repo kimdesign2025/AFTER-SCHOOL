@@ -1,0 +1,73 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Résumé des demandes enseignants</h2>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total utilisateurs</h5>
+                    <p class="display-5">{{ total_users }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Apprenants</h5>
+                    <p class="display-5">{{ total_learners }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Administrateurs</h5>
+                    <p class="display-5">{{ total_admins }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Demandes en attente</h5>
+                    <p class="display-5">{{ pending_teacher_requests }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <h3>Demandes en attente</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Utilisateur</th>
+                <th>Email</th>
+                <th>Date de la demande</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in pending_requests_list %}
+            <tr>
+                <td>{{ req.user.username }}</td>
+                <td>{{ req.user.email }}</td>
+                <td>{{ req.created_at|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <form method="post" action="{% url 'users:validate_teacher_request' req.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-sm">Valider</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Aucune demande en attente.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

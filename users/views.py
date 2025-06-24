@@ -18,6 +18,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from course.models import Course
 from course.enums import ClassLevel
+from .models import TeacherRequest
+
 
 def home(request):
     """Vue pour la page d'accueil."""
@@ -159,7 +161,7 @@ def teacher_dashboard(request):
 @login_required
 def profile(request):
     """Vue pour afficher et mettre à jour le profil utilisateur."""
-    return render(request, 'users/profile.html', {'user': request.user})
+    return render(request, 'users/include/index.html', {'user': request.user})
 
 @login_required
 def submit_teacher_request(request):
@@ -220,5 +222,52 @@ def logout_view(request):
     logout(request)
     messages.success(request, _("Vous avez été déconnecté avec succès."))
     return redirect('users:home')
-    
 
+
+###
+
+
+def is_admin(user):
+    return user.is_authenticated and user.role == "admin"
+
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
+
+
+def teacher_request_summary(request):
+    total_users = User.objects.count()
+    total_learners = User.objects.filter(role="learner").count()
+    total_admins = User.objects.filter(role="admin").count()
+    pending_teacher_requests = TeacherRequest.objects.filter(status="pending")
+    pending_count = pending_teacher_requests.count()
+
+    context = {
+        "total_users": total_users,
+        "total_learners": total_learners,
+        "total_admins": total_admins,
+        "pending_teacher_requests": pending_count,
+        "pending_requests_list": pending_teacher_requests.select_related("user"),
+    }
+
+    return render(request, "users/teacher.html", context)
+
+
+# Vue pour valider la demande
+def validate_teacher_request(request, request_id):
+    if request.method == "POST":
+        teacher_request = get_object_or_404(
+            TeacherRequest, id=request_id, status="pending"
+        )
+        teacher_request.status = "approved"
+        teacher_request.save()
+
+        # Mettre à jour le rôle de l'utilisateur
+        user = teacher_request.user
+        user.role = "teacher"
+        user.save()
+
+        messages.success(request, f"La demande de {user.username} a été approuvée.")
+        return redirect("users:teacher_request_summary")
+    else:
+        messages.error(request, "Méthode non autorisée.")
+        return redirect("users:teacher_request_summary")

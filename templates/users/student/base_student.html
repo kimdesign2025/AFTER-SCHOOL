@@ -194,7 +194,7 @@
                 <span>Certificats</span>
             </a>
             {% if user|has_approved_application %}
-            <a href="{% url 'courses:teacher_dashboard' %}" class="sidebar-link {% if request.path == '/courses/teacher-dashboard/' %}active{% endif %}">
+            <a href="{% url 'courses:create_course' %}" class="sidebar-link {% if request.path == '/courses/teacher-dashboard/' %}active{% endif %}">
                 <i class="bi bi-person-check"></i>
                 <span>Tableau de bord enseignant</span>
             </a>

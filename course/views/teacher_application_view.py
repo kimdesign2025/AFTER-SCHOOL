@@ -1,6 +1,6 @@
 from django.views.generic import FormView, TemplateView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.contrib import messages
@@ -155,12 +155,9 @@ class TeacherDashboardView(LoginRequiredMixin, TemplateView):
             return redirect('users:student_dashboard')
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['courses'] = self.request.user.teacher_profile.courses.all()
-        return context
 
-class CourseCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+
+class CourseCreateView(LoginRequiredMixin, CreateView):
     model = Course
     form_class = CourseForm
     template_name = 'users/teacher/create_course.html'  # Updated path

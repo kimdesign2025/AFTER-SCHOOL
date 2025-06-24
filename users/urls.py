@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from .views import teacher_request_summary
+
 
 app_name = 'users'
 
@@ -24,6 +26,7 @@ urlpatterns = [
     path('student/certificates/', views.CertificatesView.as_view(), name='certificates'),
     path('student/messages/', views.MessagesView.as_view(), name='messages'),
     path('student/settings/', views.SettingsView.as_view(), name='settings'),
+    path('teacher-requests-summary/', teacher_request_summary, name='teacher_request_summary'),
 
     # path('admin/teacher/<uuid:user_id>/approve/', views.approve_teacher, name='approve_teacher'),
     # path('admin/teacher/<uuid:user_id>/reject/', views.reject_teacher, name='reject_teacher'),
