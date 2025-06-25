@@ -15,7 +15,12 @@ urlpatterns = [
     path('admin/teacher-requests/<uuid:request_id>/reject/', views.reject_teacher_request, name='reject_teacher_request'),
     path('logout/', views.logout_view, name='logout'),
     # path('course/', views.course, name='course'),
-    path('admin-admin/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-admin/', views.AdminDashboardView.as_view(), name='admin_dashboard'),
+    path('admin-users/', views.AdminUsersView.as_view(), name='admin_users'),
+    path('admin-teachers/', views.AdminTeachersView.as_view(), name='admin_teachers'),
+    path('admin-applications/', views.AdminApplicationsView.as_view(), name='admin_applications'),
+    path('admin-courses/', views.AdminCoursesView.as_view(), name='admin_courses'),
+    path('application-action/<uuid:application_id>/<str:action>/', views.TeacherApplicationActionView.as_view(), name='application_action'),
     path('admin-teacher/', views.teacher_dashboard, name='admin_teacher'),
 
     path('student/dashboard/', views.StudentDashboardView.as_view(), name='student_dashboard'),

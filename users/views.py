@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.sites.shortcuts import get_current_site
@@ -10,14 +10,19 @@ from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from .forms import SignUpForm
-from .models import User
+from .models import Teacher, User
 from .tokens import registration_token
 from django.views.generic import TemplateView
 from django.views.generic import TemplateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
-from course.models import Course
+from course.models import Course, TeacherApplication
 from course.enums import ClassLevel
+from django.core.mail import send_mail
+from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 def home(request):
     """Vue pour la page d'accueil."""
@@ -122,23 +127,129 @@ class MessagesView(LoginRequiredMixin, TemplateView):
 class SettingsView(LoginRequiredMixin, TemplateView):
     template_name = 'users/student/settings.html'
 
-@login_required
-def admin_dashboard(request):
-    """Vue pour le tableau de bord admin."""
-    if not request.user.is_superuser:
-        return redirect('profile')
-    total_users = User.objects.count()
-    total_teachers = User.objects.filter(role='teacher').count()
-    pending_requests = TeacherRequest.objects.filter(status='pending').count()
-    teacher_requests = TeacherRequest.objects.all()[:5]
-    context = {
-        'total_users': total_users,
-        'total_teachers': total_teachers,
-        'pending_requests': pending_requests,
-        'teacher_requests': teacher_requests,
-    }
-    return render(request, 'users/profile.html', context)
+class AdminDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'admin/dashboard.html'
 
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            messages.error(request, "Accès réservé aux superutilisateurs.", extra_tags='toast-error')
+            return redirect('users:profile')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_users'] = User.objects.count()
+        context['total_teachers'] = Teacher.objects.count()
+        context['pending_applications'] = TeacherApplication.objects.filter(status='pending').count()
+        context['teacher_applications'] = TeacherApplication.objects.filter(status='pending').select_related('user')
+        return context
+    
+
+class TeacherApplicationActionView(LoginRequiredMixin, TemplateView):
+    def post(self, request, application_id, action):
+        if not request.user.is_superuser:
+            messages.error(request, "Accès réservé aux superutilisateurs.", extra_tags='toast-error')
+            return redirect('users:admin_dashboard')
+        
+        application = get_object_or_404(TeacherApplication, id=application_id)
+        if action == 'approve':
+            application.status = 'approved'
+            application.save()
+            # Create Teacher profile
+            Teacher.objects.get_or_create(
+                user=application.user,
+                defaults={
+                    'bio': application.bio or f"Teacher profile for {application.user.full_name}",
+                    'subject_expertise': application.subject_expertise,
+                    'profile_image': application.profile_image,
+                    'is_active': True,
+                    'is_approved': True
+                }
+            )
+            # Send approval email
+            try:
+                send_mail(
+                    subject="Votre demande d'enseignant a été approuvée",
+                    message=(
+                        f"Bonjour {application.user.full_name},\n\n"
+                        f"Votre demande pour devenir enseignant sur After School a été approuvée.\n"
+                        f"Vous pouvez maintenant créer des cours et enseigner.\n\n"
+                        f"Merci de votre engagement !\nÉquipe After School"
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[application.user.email],
+                    fail_silently=False
+                )
+                logger.info(f"Approval email sent to {application.user.email}")
+            except Exception as e:
+                logger.error(f"Failed to send approval email to {application.user.email}: {str(e)}")
+                messages.warning(request, "Application approuvée, mais l'envoi de l'email a échoué.", extra_tags='toast-warning')
+            messages.success(request, "Demande approuvée avec succès.", extra_tags='toast-success')
+        elif action == 'reject':
+            application.status = 'rejected'
+            application.save()
+            messages.success(request, "Demande rejetée avec succès.", extra_tags='toast-success')
+        
+        return redirect('users:admin_dashboard')
+
+
+class AdminUsersView(LoginRequiredMixin, TemplateView):
+    template_name = 'admin/users.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            messages.error(request, "Accès réservé aux superutilisateurs.", extra_tags='toast-error')
+            return redirect('users:profile')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['users'] = User.objects.all().select_related('profile')
+        return context
+
+class AdminTeachersView(LoginRequiredMixin, TemplateView):
+    template_name = 'admin/teachers.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            messages.error(request, "Accès réservé aux superutilisateurs.", extra_tags='toast-error')
+            return redirect('users:profile')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['teachers'] = Teacher.objects.filter(is_active=True, is_approved=True).select_related('user')
+        return context
+
+class AdminApplicationsView(LoginRequiredMixin, TemplateView):
+    template_name = 'admin/applications.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            messages.error(request, "Accès réservé aux superutilisateurs.", extra_tags='toast-error')
+            return redirect('users:profile')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['applications'] = TeacherApplication.objects.all().select_related('user')
+        return context
+
+class AdminCoursesView(LoginRequiredMixin, TemplateView):
+    template_name = 'admin/courses.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            messages.error(request, "Accès réservé aux superutilisateurs.", extra_tags='toast-error')
+            return redirect('users:profile')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['courses'] = Course.objects.all().select_related('teacher__user')
+        context['total_courses'] = Course.objects.count()
+        return context
+    
 @login_required
 def teacher_dashboard(request):
     """Vue pour le tableau de bord enseignant."""

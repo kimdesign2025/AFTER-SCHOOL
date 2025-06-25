@@ -1,0 +1,97 @@
+{% extends 'admin/dashboard.html' %}
+{% block content %}
+<div class="content">
+    <nav class="navbar mb-4">
+        <div class="container-fluid px-0">
+            <div class="d-flex align-items-center">
+                <div class="user-avatar">
+                    {{ user.email|first|upper }}
+                </div>
+                <div>
+                    <div class="fw-bold">{{ user.email }}</div>
+                    <div class="small text-muted">{{ user.get_role_display }}</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <i class="fas fa-bell text-muted"></i>
+                </div>
+                <a href="{% url 'users:logout' %}" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-file-alt"></i> Demandes d'enseignants
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Utilisateur</th>
+                            <th>Expertise</th>
+                            <th>Expérience</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for application in applications %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="user-avatar me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                        {{ application.user.email|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ application.user.email }}</div>
+                                        <div class="small text-muted">{{ application.user.full_name|default:"Nom non fourni" }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ application.subject_expertise|truncatewords:5 }}</td>
+                            <td>{{ application.teaching_experience|truncatewords:5 }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if application.status == 'pending' %}bg-warning
+                                    {% elif application.status == 'approved' %}bg-success
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ application.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-nowrap">{{ application.created_at|date:"d M Y" }}</td>
+                            <td>
+                                {% if application.status == 'pending' %}
+                                <form action="{% url 'users:application_action' application.id 'approve' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-action btn-success">
+                                        <i class="fas fa-check"></i> Approuver
+                                    </button>
+                                </form>
+                                <form action="{% url 'users:application_action' application.id 'reject' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-action btn-danger">
+                                        <i class="fas fa-times"></i> Rejeter
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span class="text-muted">Aucune action</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">Aucune demande.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
