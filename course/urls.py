@@ -1,5 +1,7 @@
 from django.urls import path
 
+from course.views.book_private_course_view import BookPrivateCourseView
+from course.views.teacher_list_view import TeacherListView
 from course.views.urse_edit_view import CourseEditView
 
 from .views.course_list_view import CourseListView
@@ -29,4 +31,6 @@ urlpatterns = [
     path('teacher-dashboard/', TeacherDashboardView.as_view(), name='teacher_dashboard'),
     path('teacher-courses/', TeacherCourseListView.as_view(), name='teacher_courses'),
     path('teacher-course/<uuid:pk>/', TeacherCourseListView.as_view(), name='teacher_course_detail'),
+    path('teacher-list/', TeacherListView.as_view(), name='teacher_list'),
+    path('book-private-course/<uuid:teacher_id>/', BookPrivateCourseView.as_view(), name='book_private_course'),
 ]

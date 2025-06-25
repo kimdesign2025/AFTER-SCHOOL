@@ -20,16 +20,30 @@
         padding: 2rem;
     }
     .form-image-preview {
-        max-width: 250px;
+        max-width: 150px;
         border-radius: 8px;
         margin-top: 0.5rem;
+        object-fit: cover;
+    }
+    .form-control, .form-control-file {
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        padding: 0.75rem;
+    }
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.1);
+    }
+    .invalid-feedback {
+        color: var(--danger-color);
+        font-size: 0.875rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="row">
-    <div class="col-lg-8 offset-lg-1">
+    <div class="col-lg-8 offset-lg-2">
         <div class="form-card">
             <div class="form-header">
                 <h2 class="mb-0"><i class="bi bi-person me-2"></i>Devenir enseignant - Étape 2: Informations personnelles</h2>
@@ -43,36 +57,55 @@
                     </div>
                     {% endif %}
                     <div class="mb-3">
+                        <label for="{{ form.bio.id_for_label }}" class="form-label">Biographie (facultatif)</label>
+                        {{ form.bio }}
+                        {% if form.bio.errors %}
+                        <div class="invalid-feedback d-block">{{ form.bio.errors|join:" " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
                         <label for="{{ form.identity_card.id_for_label }}" class="form-label">Numéro de carte d'identité</label>
                         {{ form.identity_card }}
                         {% if form.identity_card.errors %}
-                            <div class="text-danger">{{ form.identity_card.errors }}</div>
+                        <div class="invalid-feedback d-block">{{ form.identity_card.errors|join:" " }}</div>
                         {% endif %}
                     </div>
                     <div class="mb-3">
                         <label for="{{ form.identity_card_picture.id_for_label }}" class="form-label">Photo de la carte d'identité (facultatif)</label>
                         {{ form.identity_card_picture }}
                         {% if form.instance.identity_card_picture %}
-                            <p class="mt-2">
-                                <img src="{{ form.instance.identity_card_picture.url }}" alt="Identity Card" class="form-image-preview">
-                            </p>
+                        <p class="mt-2">
+                            <img src="{{ form.instance.identity_card_picture.url }}" alt="Identity Card" class="form-image-preview">
+                        </p>
                         {% endif %}
                         {% if form.identity_card_picture.errors %}
-                            <div class="text-danger">{{ form.identity_card_picture.errors }}</div>
+                        <div class="invalid-feedback d-block">{{ form.identity_card_picture.errors|join:" " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.profile_image.id_for_label }}" class="form-label">Photo de profil (facultatif)</label>
+                        {{ form.profile_image }}
+                        {% if form.instance.profile_image %}
+                        <p class="mt-2">
+                            <img src="{{ form.instance.profile_image.url }}" alt="Profile Image" class="form-image-preview">
+                        </p>
+                        {% endif %}
+                        {% if form.profile_image.errors %}
+                        <div class="invalid-feedback d-block">{{ form.profile_image.errors|join:" " }}</div>
                         {% endif %}
                     </div>
                     <div class="mb-3">
                         <label for="{{ form.city.id_for_label }}" class="form-label">Ville</label>
                         {{ form.city }}
                         {% if form.city.errors %}
-                            <div class="text-danger">{{ form.city.errors }}</div>
+                        <div class="invalid-feedback d-block">{{ form.city.errors|join:" " }}</div>
                         {% endif %}
                     </div>
                     <div class="mb-3">
                         <label for="{{ form.phone_number.id_for_label }}" class="form-label">Numéro de téléphone</label>
                         {{ form.phone_number }}
                         {% if form.phone_number.errors %}
-                            <div class="text-danger">{{ form.phone_number.errors }}</div>
+                        <div class="invalid-feedback d-block">{{ form.phone_number.errors|join:" " }}</div>
                         {% endif %}
                     </div>
                     <div class="d-flex gap-2">
@@ -85,3 +118,26 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const profileInput = document.querySelector('#{{ form.profile_image.id_for_label }}');
+    profileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const preview = document.createElement('img');
+            preview.className = 'form-image-preview mt-2';
+            preview.src = URL.createObjectURL(file);
+            const existingPreview = profileInput.parentElement.querySelector('.form-image-preview');
+            if (existingPreview) {
+                existingPreview.remove();
+            }
+            profileInput.parentElement.appendChild(preview);
+        }
+    });
+});
+</script>
+{% endblock %}
+
+

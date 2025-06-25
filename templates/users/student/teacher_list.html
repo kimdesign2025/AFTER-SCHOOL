@@ -1,0 +1,106 @@
+{% extends 'users/student/base_student.html' %}
+{% load static %}
+
+{% block title %}Choisir un enseignant - After School{% endblock %}
+
+{% block extra_css %}
+<style>
+    .teacher-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+        overflow: hidden;
+    }
+    .teacher-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .teacher-img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid var(--primary-color);
+    }
+    .teacher-card-body {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .teacher-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+    .teacher-expertise {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    .teacher-bio {
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .btn-select {
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        transition: background-color 0.3s;
+    }
+    .btn-select:hover {
+        background-color: var(--secondary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-person-video me-2"></i>Choisir un enseignant pour un cours privé
+            </div>
+            <div class="card-body">
+                {% if teachers %}
+                <div class="row">
+                    {% for teacher in teachers %}
+                    <div class="col-md-4 mb-4">
+                        <div class="teacher-card">
+                            <div class="teacher-card-body">
+                                {% if teacher.profile_image %}
+                                <img src="{{ teacher.profile_image.url }}" alt="{{ teacher.user.full_name }}" class="teacher-img mb-3">
+                                {% else %}
+                                <div class="teacher-img mb-3 bg-light d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-person-circle" style="font-size: 2rem; color: #6c757d;"></i>
+                                </div>
+                                {% endif %}
+                                <div class="teacher-name">{{ teacher.user.full_name }}</div>
+                                <div class="teacher-expertise">
+                                    {{ teacher.subject_expertise|default:"Non spécifié" }}
+                                </div>
+                                <div class="teacher-bio">
+                                    {{ teacher.bio|default:"Aucune biographie disponible."|truncatewords:30 }}
+                                </div>
+                                <a href="{% url 'courses:book_private_course' teacher.id %}" class="btn btn-select">
+                                    <i class="bi bi-check-circle me-2"></i>Sélectionner
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">Aucun enseignant disponible pour le moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

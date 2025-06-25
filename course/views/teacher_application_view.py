@@ -143,6 +143,21 @@ class TeacherApplicationConfirmView(LoginRequiredMixin, TemplateView):
         application = get_object_or_404(TeacherApplication, user=request.user)
         application.status = 'pending'
         application.save()
+        # Create or update Teacher profile
+        teacher, created = Teacher.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'subject_expertise': application.subject_expertise,
+                'profile_image': application.profile_image,
+                'is_active': False,
+                'is_approved': False
+            }
+        )
+        if not created:
+            teacher.subject_expertise = application.subject_expertise
+            if application.profile_image:
+                teacher.profile_image = application.profile_image
+            teacher.save()
         messages.success(request, "Demande soumise avec succès. Vous recevrez une notification après validation.", extra_tags='toast-success')
         return redirect('users:student_dashboard')
 
@@ -150,25 +165,27 @@ class TeacherDashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'users/teacher/dashboard.html'
 
     def dispatch(self, request, *args, **kwargs):
-        if not hasattr(request.user, 'teacher_profile') or not request.user.teacher_profile.is_approved:
+        if not hasattr(request.user, 'teacher') or not request.user.teacher.is_approved:
             messages.error(request, "Votre compte enseignant n'est pas encore approuvé.", extra_tags='toast-error')
             return redirect('users:student_dashboard')
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['courses'] = self.request.user.teacher_profile.courses.all()
+        context['courses'] = self.request.user.teacher.courses.all()
         return context
 
-class CourseCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+from django.views.generic import CreateView
+from django.urls import reverse_lazy
+from django.contrib import messages
+from ..models import Course
+from ..forms import CourseForm, ModuleFormSet
+
+class CourseCreateView(CreateView):
     model = Course
     form_class = CourseForm
-    template_name = 'users/teacher/create_course.html'  # Updated path
+    template_name = 'users/teacher/create_course.html'
     success_url = reverse_lazy('courses:teacher_dashboard')
-
-    def test_func(self):
-        """Restrict access to active teachers only."""
-        return hasattr(self.request.user, 'teacher_profile') and self.request.user.teacher_profile.is_active
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -180,7 +197,11 @@ class CourseCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def form_valid(self, form):
         """Set the teacher to the logged-in user's teacher profile and price to 0."""
-        form.instance.teacher = self.request.user.teacher_profile
+        try:
+            form.instance.teacher = self.request.user.teacher
+        except AttributeError:
+            messages.error(self.request, "Vous devez être un enseignant pour créer un cours.", extra_tags='toast-error')
+            return self.form_invalid(form)
         form.instance.price = 0.00
         context = self.get_context_data()
         module_formset = context['module_formset']

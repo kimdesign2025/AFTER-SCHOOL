@@ -72,14 +72,23 @@ class TeacherApplicationStep1Form(forms.ModelForm):
             'teaching_experience': forms.Textarea(attrs={'rows': 5, 'class': 'form-control'}),
             'subject_expertise': forms.TextInput(attrs={'class': 'form-control'}),
         }
-
 class TeacherApplicationStep2Form(forms.ModelForm):
     class Meta:
         model = TeacherApplication
-        fields = ['identity_card', 'identity_card_picture', 'city', 'phone_number']
+        fields = ['bio', 'identity_card', 'identity_card_picture', 'city', 'phone_number', 'profile_image']
         widgets = {
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'identity_card': forms.TextInput(attrs={'class': 'form-control'}),
             'identity_card_picture': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'city': forms.TextInput(attrs={'class': 'form-control'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'profile_image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+        }
+        labels = {
+            'bio': _('Biographie'),
+            'identity_card': _('Numéro de carte d\'identité'),
+            'identity_card_picture': _('Photo de la carte d\'identité'),
+            'city': _('Ville'),
+            'phone_number': _('Numéro de téléphone'),
+            'profile_image': _('Photo de profil'),
         }

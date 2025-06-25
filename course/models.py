@@ -68,10 +68,18 @@ class TeacherApplication(BaseModel):
         verbose_name=_("Subject Expertise"),
         help_text=_("Subjects the applicant is qualified to teach.")
     )
+    bio = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_("Bio"),
+        help_text=_("Teacher's biography or description.")
+    )
     identity_card = models.CharField(
         max_length=100,
         verbose_name=_("Identity Card Number"),
-        help_text=_("National identity card number.")
+        help_text=_("National identity card number."),
+        blank=True,
+        null=True
     )
     identity_card_picture = models.ImageField(
         upload_to='identity_cards/',
@@ -80,16 +88,26 @@ class TeacherApplication(BaseModel):
         null=True,
         blank=True
     )
+    profile_image = models.ImageField(
+        upload_to="teacher_profiles/",
+        verbose_name=_("Profile Image"),
+        help_text=_("Profile image for the teacher profile (optional)."),
+        null=True,
+        blank=True
+    )
     city = models.CharField(
         max_length=100,
         verbose_name=_("City"),
-        help_text=_("City of residence.")
+        help_text=_("City of residence."),
+        blank=True,
+        null=True
     )
     phone_number = models.CharField(
         max_length=20,
         verbose_name=_("Phone Number"),
+        help_text=_("Contact phone number (optional)."),
         blank=True,
-        help_text=_("Contact phone number (optional).")
+        null=True
     )
     status = models.CharField(
         max_length=20,
@@ -105,7 +123,7 @@ class TeacherApplication(BaseModel):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.user.username} - {self.get_status_display()}"
+        return f"{self.user.email} - {self.get_status_display()}"
 
 class Course(BaseModel):
     """Model representing a course created by a teacher."""
@@ -357,3 +375,99 @@ class CourseEnrollment(BaseModel):
             user=self.user, module__course=self.course
         ).count()
         return completed_modules == total_modules
+
+
+
+class PrivateCourse(BaseModel):
+    student = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name="private_courses_as_student",
+        verbose_name=_("Student"),
+        help_text=_("Student booked for the private course.")
+    )
+    teacher = models.ForeignKey(
+        'users.Teacher',
+        on_delete=models.CASCADE,
+        related_name="private_courses_as_teacher",
+        verbose_name=_("Teacher"),
+        help_text=_("Teacher conducting the private course.")
+    )
+    scheduled_time = models.DateTimeField(
+        verbose_name=_("Scheduled Time"),
+        help_text=_("Date and time when the private course is scheduled.")
+    )
+    meet_link = models.URLField(
+        verbose_name=_("Google Meet Link"),
+        help_text=_("Link to the Google Meet for the private course.")
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=(
+            ('pending', 'Pending'),
+            ('confirmed', 'Confirmed'),
+            ('completed', 'Completed'),
+            ('cancelled', 'Cancelled'),
+        ),
+        default='pending',
+        verbose_name=_("Status"),
+        help_text=_("Status of the private course.")
+    )
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=50.00,  # Example price
+        verbose_name=_("Price"),
+        help_text=_("Price of the private course.")
+    )
+
+    class Meta:
+        verbose_name = _("Private Course")
+        verbose_name_plural = _("Private Courses")
+        ordering = ["-scheduled_time"]
+
+    def __str__(self):
+        return f"Private Course: {self.student.full_name} with {self.teacher.user.full_name}"
+
+class PaymentSimulation(BaseModel):
+    private_course = models.OneToOneField(
+        PrivateCourse,
+        on_delete=models.CASCADE,
+        related_name="payment",
+        verbose_name=_("Private Course"),
+        help_text=_("Private course associated with the payment.")
+    )
+    method = models.CharField(
+        max_length=20,
+        choices=(
+            ('mtn', 'MTN Mobile Money'),
+            ('orange', 'Orange Money'),
+        ),
+        verbose_name=_("Payment Method"),
+        help_text=_("Simulated payment method used.")
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name=_("Amount"),
+        help_text=_("Amount paid for the private course.")
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=(
+            ('pending', 'Pending'),
+            ('completed', 'Completed'),
+            ('failed', 'Failed'),
+        ),
+        default='pending',
+        verbose_name=_("Status"),
+        help_text=_("Status of the simulated payment.")
+    )
+
+    class Meta:
+        verbose_name = _("Payment Simulation")
+        verbose_name_plural = _("Payment Simulations")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Payment for {self.private_course} via {self.get_method_display()}"
