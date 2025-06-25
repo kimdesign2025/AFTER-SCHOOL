@@ -331,5 +331,8 @@ def logout_view(request):
     logout(request)
     messages.success(request, _("Vous avez été déconnecté avec succès."))
     return redirect('users:home')
-    
+
+
+
+
 

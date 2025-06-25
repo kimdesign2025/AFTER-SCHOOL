@@ -8,6 +8,11 @@ from ..models import TeacherApplication, Qualification, Course
 from ..forms import QualificationForm, TeacherApplicationStep1Form, TeacherApplicationStep2Form, CourseForm, ModuleFormSet
 from users.models import Teacher
 import logging
+from django.views.generic import CreateView
+from django.urls import reverse_lazy
+from django.contrib import messages
+from ..models import Course
+from ..forms import CourseForm, ModuleFormSet
 
 logger = logging.getLogger(__name__)
 
@@ -164,22 +169,18 @@ class TeacherApplicationConfirmView(LoginRequiredMixin, TemplateView):
 class TeacherDashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'users/teacher/dashboard.html'
 
-    def dispatch(self, request, *args, **kwargs):
-        if not hasattr(request.user, 'teacher') or not request.user.teacher.is_approved:
-            messages.error(request, "Votre compte enseignant n'est pas encore approuvé.", extra_tags='toast-error')
-            return redirect('users:student_dashboard')
-        return super().dispatch(request, *args, **kwargs)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['courses'] = self.request.user.teacher.courses.all()
+        try:
+            teacher = Teacher.objects.get(user=self.request.user)
+            context['courses'] = teacher.courses.all()
+            context['teacher'] = teacher
+        except Teacher.DoesNotExist:
+            messages.warning(self.request, "Aucun profil enseignant trouvé pour cet utilisateur.", extra_tags='toast-warning')
+            context['courses'] = []
+            context['teacher'] = None
         return context
 
-from django.views.generic import CreateView
-from django.urls import reverse_lazy
-from django.contrib import messages
-from ..models import Course
-from ..forms import CourseForm, ModuleFormSet
 
 class CourseCreateView(CreateView):
     model = Course
